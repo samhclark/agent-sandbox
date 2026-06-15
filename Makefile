@@ -1,5 +1,6 @@
-IMAGE ?= ghcr.io/samhclark/agent-sandbox
-TAG   ?= latest
+IMAGE     ?= ghcr.io/samhclark/agent-sandbox
+TAG       ?= latest
+PLATFORMS ?= linux/amd64,linux/arm64/v8
 
 .DEFAULT_GOAL := help
 
@@ -22,10 +23,11 @@ test: ## Run tests against the built image (stub)
 
 ##@ Building
 
-build: ## Build the container image locally
-	podman build -t $(IMAGE):$(TAG) -f Containerfile .
+build: ## Build the multi-platform image locally as a manifest list
+	podman build --platform $(PLATFORMS) --manifest $(IMAGE):$(TAG) -f Containerfile .
 
-clean: ## Remove the locally built image
+clean: ## Remove the locally built image/manifest
+	-podman manifest rm $(IMAGE):$(TAG)
 	-podman rmi $(IMAGE):$(TAG)
 
 .PHONY: help deps check test build clean

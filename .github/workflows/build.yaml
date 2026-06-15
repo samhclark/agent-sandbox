@@ -26,12 +26,20 @@ jobs:
       - name: Checkout repository
         uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
 
+      # arm64 is cross-built under emulation on the amd64 runner. Installing
+      # qemu-user-static registers the binfmt handlers buildah needs.
+      - name: Enable arm64 emulation
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y qemu-user-static
+
       - name: Build image
         id: build
         uses: redhat-actions/buildah-build@7a95fa7ee0f02d552a32753e7414641a04307056 # v2.13
         with:
           image: ${{ env.IMAGE_NAME }}
           tags: latest
+          archs: amd64, arm64
           containerfiles: |
             ./Containerfile
 
