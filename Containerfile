@@ -11,16 +11,20 @@ RUN apt-get install -y curl ripgrep
 
 USER nonroot:nonroot
 
+# Vendored upstream installer scripts (refresh with `make deps-update`).
+# retry.sh wraps each install to ride out transient upstream HTTP 504s.
+COPY scripts/ /tmp/scripts/
+
 # Install Claude Code
-RUN curl -fsSL https://claude.ai/install.sh | bash
+RUN bash /tmp/scripts/retry.sh bash /tmp/scripts/install-claude.sh
 RUN printf 'export PATH="$HOME/.local/bin:$PATH"\n' | tee -a /home/nonroot/.bashrc
 
 
 # Install OpenAI Codex CLI
-RUN curl -fsSL https://chatgpt.com/codex/install.sh | CODEX_NON_INTERACTIVE=1 sh
+RUN CODEX_NON_INTERACTIVE=1 bash /tmp/scripts/retry.sh sh /tmp/scripts/install-codex.sh
 
 # Install opencode (symlink into ~/.local/bin, which is already on PATH)
-RUN curl -fsSL https://opencode.ai/install | bash && \
+RUN bash /tmp/scripts/retry.sh bash /tmp/scripts/install-opencode.sh && \
     ln -s "$HOME/.opencode/bin/opencode" "$HOME/.local/bin/opencode"
 
 CMD [ "/bin/bash", "-l" ]
