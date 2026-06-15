@@ -7,7 +7,7 @@ RUN apt-get update && \
     apt-get install -y ca-certificates && \
     sed -i 's|http://|https://|g' /etc/apt/sources.list.d/debian.sources
 
-RUN apt-get install -y curl git openssh ripgrep sudo
+RUN apt-get install -y curl git jq ripgrep ssh sudo
 
 USER nonroot:nonroot
 
