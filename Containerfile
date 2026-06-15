@@ -19,4 +19,8 @@ RUN printf 'export PATH="$HOME/.local/bin:$PATH"\n' | tee -a /home/nonroot/.bash
 # Install OpenAI Codex CLI
 RUN curl -fsSL https://chatgpt.com/codex/install.sh | CODEX_NON_INTERACTIVE=1 sh
 
+# Install opencode (symlink into ~/.local/bin, which is already on PATH)
+RUN curl -fsSL https://opencode.ai/install | bash && \
+    ln -s "$HOME/.opencode/bin/opencode" "$HOME/.local/bin/opencode"
+
 CMD [ "/bin/bash", "-l" ]
