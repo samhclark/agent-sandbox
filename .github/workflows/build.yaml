@@ -75,5 +75,5 @@ jobs:
         with:
           registry-token: ${{ secrets.GITHUB_TOKEN }}
           args: >-
-            sign --yes
+            sign --yes --recursive
             ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}@${{ steps.push.outputs.digest }}
