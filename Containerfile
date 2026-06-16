@@ -9,11 +9,16 @@ RUN apt-get update && \
 # jq, ripgrep, ssh, and sudo round out the fundamentals.
 RUN apt-get install -y build-essential procps curl file git jq ripgrep ssh sudo
 
-# Homebrew refuses to run as root and shells out to sudo to set up
-# /home/linuxbrew, so nonroot needs passwordless sudo before the install.
+# Homebrew refuses to run as root, and the build environment can't grant it
+# real root via sudo anyway (buildah mounts the rootfs nosuid). Pre-creating
+# the prefix owned by nonroot makes it writable, so the installer takes its
+# no-sudo path and never needs to elevate during the build. The sudoers grant
+# is purely for runtime convenience (installing apt packages in the sandbox).
 RUN useradd --create-home --shell /bin/bash nonroot && \
     echo 'nonroot ALL=(ALL) NOPASSWD:ALL' > /etc/sudoers.d/nonroot && \
-    chmod 0440 /etc/sudoers.d/nonroot
+    chmod 0440 /etc/sudoers.d/nonroot && \
+    mkdir -p /home/linuxbrew/.linuxbrew && \
+    chown -R nonroot:nonroot /home/linuxbrew
 
 # Login shells source /etc/profile, which resets PATH and would drop the brew
 # entries set via ENV below. This drop-in re-adds brew for login shells.
