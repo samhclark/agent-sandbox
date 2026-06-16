@@ -26,6 +26,18 @@ jobs:
       - name: Checkout repository
         uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
 
+      # Fail fast if the vendored Homebrew installer has drifted from upstream,
+      # so a stale bootstrap script never ships. The daily "Update vendored
+      # Homebrew installer" workflow opens a PR that clears this.
+      - name: Verify vendored Homebrew installer is current
+        run: |
+          curl -fsSL https://raw.githubusercontent.com/Homebrew/install/HEAD/install.sh -o /tmp/install-homebrew-upstream.sh
+          if ! diff -u scripts/install-homebrew.sh /tmp/install-homebrew-upstream.sh; then
+            echo "::error::scripts/install-homebrew.sh is out of date. Run 'make deps-update' (or merge the daily re-vendor PR)."
+            exit 1
+          fi
+          echo "Vendored Homebrew installer matches upstream."
+
       # arm64 is cross-built under emulation on the amd64 runner. Installing
       # qemu-user-static registers the binfmt handlers buildah needs.
       - name: Enable arm64 emulation
