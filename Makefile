@@ -15,10 +15,8 @@ deps: ## Install/verify build dependencies
 	@command -v podman >/dev/null 2>&1 || { echo "podman is required but not installed"; exit 1; }
 	@echo "All dependencies present."
 
-deps-update: ## Refresh the vendored upstream installer scripts
-	curl -fsSL https://claude.ai/install.sh         -o scripts/install-claude.sh
-	curl -fsSL https://chatgpt.com/codex/install.sh -o scripts/install-codex.sh
-	curl -fsSL https://opencode.ai/install          -o scripts/install-opencode.sh
+deps-update: ## Refresh the vendored Homebrew installer script
+	curl -fsSL https://raw.githubusercontent.com/Homebrew/install/HEAD/install.sh -o scripts/install-homebrew.sh
 
 check: ## Lint the Containerfile and workflows (stub)
 	@echo "No checks wired up yet."

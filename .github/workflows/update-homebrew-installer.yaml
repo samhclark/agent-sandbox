@@ -1,0 +1,45 @@
+name: Update vendored Homebrew installer
+
+on:
+  schedule:
+    - cron: '17 7 * * *'  # Daily at 7:17 AM UTC, before the image build
+  workflow_dispatch:
+
+jobs:
+  vendor:
+    name: Re-vendor and open PR
+    runs-on: ubuntu-24.04
+    permissions:
+      contents: write
+      pull-requests: write
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
+
+      - name: Refresh vendored installer and open PR
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          make deps-update
+
+          if git diff --quiet -- scripts/install-homebrew.sh; then
+            echo "Vendored Homebrew installer already matches upstream; nothing to do."
+            exit 0
+          fi
+
+          BRANCH=automated/update-homebrew-installer
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git switch -C "$BRANCH"
+          git add scripts/install-homebrew.sh
+          git commit -m "Refresh vendored Homebrew installer"
+          git push -f origin "$BRANCH"
+
+          if [ -n "$(gh pr list --head "$BRANCH" --state open --json number -q '.[0].number')" ]; then
+            echo "PR already open for $BRANCH; force-pushed the latest installer to it."
+          else
+            gh pr create --base main --head "$BRANCH" \
+              --title "Refresh vendored Homebrew installer" \
+              --body "Automated refresh of \`scripts/install-homebrew.sh\` from upstream (\`Homebrew/install@HEAD\`). Merging this clears the build-time staleness check."
+          fi
